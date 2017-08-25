@@ -102,6 +102,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         print(userInfo)
         let aps = userInfo["aps"] as! [String: AnyObject]
+        // 1
+        if aps["content-available"] as? Int == 1 {
+            let podcastStore = PodcastStore.sharedStore
+            // Refresh Podcast
+            // 2
+            podcastStore.refreshItems { didLoadNewItems in
+                // 3
+                completionHandler(didLoadNewItems ? .newData : .noData)
+            }
+        }   else  {
+            // News
+            // 4
+            _ = NewsItem.makeNewsItem(aps)
+            completionHandler(.newData)
+        }
         _ = NewsItem.makeNewsItem(aps)
     }
 }
