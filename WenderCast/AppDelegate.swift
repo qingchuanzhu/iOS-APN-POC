@@ -64,6 +64,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let viewAction = UNNotificationAction(identifier: viewActionIdentifier,
                                                   title: "View",
                                                   options: [.foreground])
+            // 2
+            let newsCategory = UNNotificationCategory(identifier: newsCategoryIdentifier,
+                                                      actions: [viewAction],
+                                                      intentIdentifiers: [],
+                                                      options: [])
+            // 3
+            UNUserNotificationCenter.current().setNotificationCategories([newsCategory])
             self.getNotificationSettings()
         }
     }
