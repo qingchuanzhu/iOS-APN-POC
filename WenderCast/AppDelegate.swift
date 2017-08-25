@@ -44,7 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     UITabBar.appearance().barTintColor = UIColor.themeGreenColor
     UITabBar.appearance().tintColor = UIColor.white
-    
+    UNUserNotificationCenter.current().delegate = self
     registerForPushNotification()
     
     if let notification = launchOptions?[.remoteNotification] as? [String : AnyObject] {
@@ -69,7 +69,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                                       actions: [viewAction],
                                                       intentIdentifiers: [],
                                                       options: [])
-            // 3
+            
+            // 3 The action buttons do not appear on their own. On supported devices you have to 3D touch the notifications to show these buttons. On devices does not support 3D touches, you need to swiping to show them.
             UNUserNotificationCenter.current().setNotificationCategories([newsCategory])
             self.getNotificationSettings()
         }
@@ -99,8 +100,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        print(userInfo)
         let aps = userInfo["aps"] as! [String: AnyObject]
         _ = NewsItem.makeNewsItem(aps)
+    }
+}
+
+extension AppDelegate:UNUserNotificationCenterDelegate{
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // 1
+        let userInfo = response.notification.request.content.userInfo
+        let aps = userInfo["aps"] as! [String: AnyObject]
+        
+        // 2
+        if let newsItem = NewsItem.makeNewsItem(aps) {
+            (window?.rootViewController as? UITabBarController)?.selectedIndex = 1
+            // 3
+            if response.actionIdentifier == viewActionIdentifier,
+                let url = URL(string: newsItem.link) {
+                let safari = SFSafariViewController(url: url)
+                window?.rootViewController?.present(safari, animated: true, completion: nil)
+            }
+        }
+        
+        // 4
+        completionHandler()
     }
 }
 
